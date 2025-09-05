@@ -58,12 +58,14 @@ class ArticleService {
      * @throws ParameterMissingException
      */
     public function createArticleByRequest(Request $request): Article {
-        $name = $request->request->get('name');
+        $data = $request->getPayload();
+
+        $name = $data->get('name');
         if (!$name) {
             throw new ParameterMissingException('name');
         }
 
-        $amount = (int) $request->request->get('amount', 0);
+        $amount = (int) $data->get('amount', 0);
         if ($amount === 0) {
             throw new ParameterMissingException('amount');
         }
@@ -72,7 +74,7 @@ class ArticleService {
         $article->setName(mb_trim($name));
         $article->setAmount($amount);
 
-        $barcode = $request->request->get('barcode');
+        $barcode = $data->get('barcode');
         if ($barcode) {
             $article->setBarcode(mb_trim($barcode));
         }

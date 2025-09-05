@@ -35,11 +35,13 @@ class TransactionController extends AbstractController {
 
     #[Route('/user/{userId}/transaction', methods: ['POST'])]
     public function createUserTransactions($userId, Request $request, TransactionService $transactionService, EntityManagerInterface $entityManager): JsonResponse {
-        $amount = $request->request->get('amount');
-        $quantity = $request->request->get('quantity');
-        $comment = $request->request->get('comment');
-        $recipientId = $request->request->get('recipientId');
-        $articleId = $request->request->get('articleId');
+        $data = $request->getPayload();
+
+        $amount = $data->get('amount');
+        $quantity = $data->get('quantity');
+        $comment = $data->get('comment');
+        $recipientId = $data->get('recipientId');
+        $articleId = $data->get('articleId');
 
         if (mb_strlen($comment) > 255) {
             throw new ParameterInvalidException('comment');

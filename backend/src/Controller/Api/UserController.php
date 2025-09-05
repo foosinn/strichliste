@@ -43,7 +43,8 @@ class UserController extends AbstractController {
 
     #[Route(methods: ['POST'])]
     public function createUser(Request $request, EntityManagerInterface $entityManager): JsonResponse {
-        $name = $request->request->get('name');
+        $data = $request->getPayload();
+        $name = $data->get('name');
         if (!$name) {
             throw new ParameterMissingException('name');
         }
@@ -63,7 +64,7 @@ class UserController extends AbstractController {
         $user = new User();
         $user->setName($name);
 
-        $email = $request->request->get('email');
+        $email = $data->get('email');
         if ($email) {
             if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 255) {
                 throw new ParameterInvalidException('email');
@@ -114,12 +115,14 @@ class UserController extends AbstractController {
 
     #[Route('/{userId}', methods: ['POST'])]
     public function updateUser($userId, Request $request, EntityManagerInterface $entityManager): JsonResponse {
+        $data = $request->getPayload();
+
         $user = $entityManager->getRepository(User::class)->findByIdentifier($userId);
         if (!$user) {
             throw new UserNotFoundException($userId);
         }
 
-        $name = $request->request->get('name');
+        $name = $data->get('name');
         if (mb_strlen($name) > 64) {
             throw new ParameterInvalidException('name');
         }
@@ -135,7 +138,7 @@ class UserController extends AbstractController {
             $user->setName($name);
         }
 
-        $email = $request->request->get('email');
+        $email = $data->get('email');
         if ($email) {
             if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 255) {
                 throw new ParameterInvalidException('email');
@@ -144,7 +147,7 @@ class UserController extends AbstractController {
             $user->setEmail($email);
         }
 
-        $isDisabled = $request->request->get('isDisabled');
+        $isDisabled = $data->get('isDisabled');
         if ($isDisabled !== null) {
             $user->setDisabled($isDisabled);
         }
