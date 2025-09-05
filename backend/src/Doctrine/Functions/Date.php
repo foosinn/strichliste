@@ -3,6 +3,8 @@
 namespace App\Doctrine\Functions;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
+use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use Doctrine\ORM\Query\AST\Functions\FunctionNode;
 use Doctrine\ORM\Query\TokenType;
 use Doctrine\ORM\Query\Parser;
@@ -28,18 +30,10 @@ class Date extends FunctionNode {
     }
 
     private function getFunctionByPlatform(AbstractPlatform $platform, string $date): string {
-        switch ($platform->getName()) {
-            case 'oracle':
-                return \sprintf("TO_DATE(%s, 'YYYY-MON-DD')", $date);
-
-            case 'mssql':
-                return \sprintf('CONVERT(VARCHAR, %s, 23)', $date);
-
-            default:
-            case 'mysql':
-            case 'sqlite':
-            case 'postgresql':
-                return \sprintf('DATE(%s)', $date);
-        }
+        return match (true) {
+            $platform instanceof OraclePlatform => \sprintf("TO_DATE(%s, 'YYYY-MON-DD')", $date),
+            $platform instanceof SQLServerPlatform => \sprintf('CONVERT(VARCHAR, %s, 23)', $date),
+            default => \sprintf('DATE(%s)', $date),
+        };
     }
 }
