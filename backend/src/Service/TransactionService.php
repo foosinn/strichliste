@@ -54,7 +54,7 @@ class TransactionService {
             throw new TransactionInvalidException("Amount can't be positive when sending money or buying an article");
         }
 
-        return $this->entityManager->transactional(function () use ($user, $amount, $comment, $quantity, $articleId, $recipientId): Transaction {
+        return $this->entityManager->wrapInTransaction(function () use ($user, $amount, $comment, $quantity, $articleId, $recipientId): Transaction {
             $transaction = new Transaction();
             $transaction->setUser($user);
             $transaction->setComment($comment);
@@ -125,7 +125,7 @@ class TransactionService {
      * @throws ParameterNotFoundException
      */
     public function revertTransaction(int $transactionId): Transaction {
-        return $this->entityManager->transactional(function () use ($transactionId) {
+        return $this->entityManager->wrapInTransaction(function () use ($transactionId) {
             $transaction = $this->entityManager->getRepository(Transaction::class)->find($transactionId, LockMode::PESSIMISTIC_WRITE);
             if (!$transaction) {
                 throw new TransactionNotFoundException($transactionId);
