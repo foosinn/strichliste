@@ -29,7 +29,7 @@ RUN yarn build
 
 # ---
 
-FROM dunglas/frankenphp:1.9.1-php8.4.12-trixie
+FROM dunglas/frankenphp:1.9.1-php8.4.12-trixie AS docker
 
 RUN install-php-extensions pdo_pgsql pdo_mysql mysqli bcmath imagick
 
@@ -41,3 +41,23 @@ WORKDIR /app
 ENV FRANKENPHP_CONFIG="worker ./public/index.php"
 ENV APP_RUNTIME="Runtime\\FrankenPhpSymfony\\Runtime"
 ENV APP_ENV=dev
+
+# ---
+
+FROM dunglas/frankenphp:static-builder-musl-1.9.1 AS static
+
+COPY --from=docker /app /app
+
+WORKDIR /go/src/app/
+RUN EMBED=/app/ ./build-static.sh
+
+# ---
+
+FROM scratch
+
+COPY --from=static /go/src/app/dist/frankenphp-linux-x86_64 /app
+
+ENV FRANKENPHP_CONFIG="worker ./public/index.php"
+ENV APP_RUNTIME="Runtime\\FrankenPhpSymfony\\Runtime"
+ENV APP_ENV=dev
+ENTRYPOINT ["/app", "php-server"]
